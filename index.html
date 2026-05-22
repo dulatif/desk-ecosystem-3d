@@ -1,0 +1,662 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Minimalist Adjustable Desk 3D</title>
+    <!-- Tailwind CSS for sleek UI styling -->
+    <script src="https://cdn.tailwindcss.com"></script>
+    <style>
+        body {
+            margin: 0;
+            overflow: hidden;
+            background-color: #121618; /* Dark premium background */
+            font-family: 'Segoe UI', Roboto, Helvetica, Arial, sans-serif;
+            color: #E2E8F0;
+        }
+        #canvas-container {
+            width: 100vw;
+            height: 100vh;
+            display: block;
+        }
+        #ui-panel {
+            background: rgba(26, 32, 35, 0.85);
+            backdrop-filter: blur(12px);
+            -webkit-backdrop-filter: blur(12px);
+            border: 1px solid rgba(255, 255, 255, 0.1);
+            box-shadow: 0 20px 40px rgba(0, 0, 0, 0.4);
+        }
+        
+        /* Custom styling for the range slider to look premium */
+        input[type=range] {
+            -webkit-appearance: none;
+            width: 100%;
+            background: transparent;
+        }
+        input[type=range]::-webkit-slider-thumb {
+            -webkit-appearance: none;
+            height: 20px;
+            width: 20px;
+            border-radius: 50%;
+            background: #4FD1C5; /* Muted Teal Accent */
+            cursor: pointer;
+            margin-top: -8px;
+            box-shadow: 0 0 10px rgba(79, 209, 197, 0.5);
+            transition: transform 0.1s;
+        }
+        input[type=range]::-webkit-slider-thumb:hover {
+            transform: scale(1.2);
+        }
+        input[type=range]::-webkit-slider-runnable-track {
+            width: 100%;
+            height: 4px;
+            cursor: pointer;
+            background: #4A5568;
+            border-radius: 2px;
+        }
+    </style>
+    
+    <!-- Import maps polyfill -->
+    <script async src="https://unpkg.com/es-module-shims@1.8.0/dist/es-module-shims.js"></script>
+    <!-- Import map for Three.js -->
+    <script type="importmap">
+        {
+            "imports": {
+                "three": "https://unpkg.com/three@0.160.0/build/three.module.js",
+                "three/addons/": "https://unpkg.com/three@0.160.0/examples/jsm/"
+            }
+        }
+    </script>
+</head>
+<body>
+
+    <!-- UI Overlay -->
+    <div class="fixed top-0 left-0 w-full h-full pointer-events-none flex flex-col justify-between p-6 z-10">
+        <header class="pointer-events-auto">
+            <h1 class="text-3xl font-light tracking-wide text-white drop-shadow-md">Modular & Adjustable Desk <span class="font-bold text-[#4FD1C5]">Ecosystem</span></h1>
+            <p class="text-sm text-gray-400 mt-1">Sustainable Bamboo & Recycled Plastic</p>
+        </header>
+
+        <main class="pointer-events-auto self-end sm:self-center sm:mb-8 w-full max-w-2xl">
+            <div id="ui-panel" class="rounded-2xl p-6 flex flex-col sm:flex-row gap-8 items-center justify-between">
+                
+                <!-- Height Control -->
+                <div class="w-full sm:w-1/2">
+                    <div class="flex justify-between items-center mb-4">
+                        <h2 class="text-lg font-medium text-gray-200">Height Level</h2>
+                        <span id="height-display" class="font-mono text-xl text-[#4FD1C5]">Level 2</span>
+                    </div>
+                    <!-- 3 Discrete levels mapped to slots -->
+                    <input type="range" id="height-slider" min="1" max="3" step="1" value="2">
+                    <div class="flex justify-between text-xs text-gray-500 mt-2 font-mono">
+                        <span>1 (Low)</span>
+                        <span>2 (Med)</span>
+                        <span>3 (High)</span>
+                    </div>
+                </div>
+                
+                <!-- Divider -->
+                <div class="hidden sm:block w-px h-16 bg-gray-700"></div>
+                <div class="block sm:hidden w-full h-px bg-gray-700 my-1"></div>
+
+                <!-- Camera POV Buttons -->
+                <div class="w-full sm:w-1/2">
+                    <h2 class="text-sm font-medium text-gray-400 mb-3 text-center sm:text-left">Camera View</h2>
+                    <div class="grid grid-cols-2 gap-2">
+                        <button id="btn-iso" class="text-xs px-3 py-2 rounded-lg bg-gray-800 text-gray-300 hover:bg-[#4FD1C5] hover:text-gray-900 transition-colors font-medium text-center">Isometric</button>
+                        <button id="btn-top" class="text-xs px-3 py-2 rounded-lg bg-gray-800 text-gray-300 hover:bg-[#4FD1C5] hover:text-gray-900 transition-colors font-medium text-center">Top View</button>
+                        <button id="btn-front" class="text-xs px-3 py-2 rounded-lg bg-gray-800 text-gray-300 hover:bg-[#4FD1C5] hover:text-gray-900 transition-colors font-medium text-center">Front View</button>
+                        <button id="btn-rear" class="text-xs px-3 py-2 rounded-lg bg-gray-800 text-gray-300 hover:bg-[#4FD1C5] hover:text-gray-900 transition-colors font-medium text-center">Rear View</button>
+                    </div>
+                </div>
+            </div>
+        </main>
+    </div>
+
+    <!-- 3D Canvas Container -->
+    <div id="canvas-container"></div>
+
+    <script type="module">
+        import * as THREE from 'three';
+        import { OrbitControls } from 'three/addons/controls/OrbitControls.js';
+        // Importing RoundedBoxGeometry for premium, realistic edges as seen in the sketch
+        import { RoundedBoxGeometry } from 'three/addons/geometries/RoundedBoxGeometry.js';
+
+        let scene, camera, renderer, controls;
+        let riserGroup;
+        
+        // Animation State (3 specific levels based on the peg system)
+        const heights = { 1: 0.06, 2: 0.095, 3: 0.13 };
+        let currentHeight = heights[2];
+        let targetHeight = heights[2];
+        let animPhase = 0; // 0: Idle, 1: Unlock (Slide out), 2: Align (Move Y), 3: Lock (Slide in)
+        const unlockZ = 0.10; // Recalculated for the new deeper track dimensions
+
+        // Camera Animation State
+        let targetCameraPos = new THREE.Vector3(0.6, 0.4, 0.7);
+        let isAnimatingCamera = false;
+
+        // Configuration / Design Palette from reference
+        const PALETTE = {
+            bambooTop: 0xDEB887,    // Warm Bamboo / Recycled Wood
+            plasticLegs: 0x4A4D52,  // Recycled Compressed Plastic (Dark grey)
+            rail: 0x2A2A2A,         // Dark metal for the slide-in rail
+            floor: 0x182427,        
+            ambient: 0xffffff,
+            lightPoint: 0xfff4e5    
+        };
+
+        init();
+        animate();
+
+        function init() {
+            const container = document.getElementById('canvas-container');
+
+            // 1. Scene Setup
+            scene = new THREE.Scene();
+            scene.background = new THREE.Color(0x121618);
+            scene.fog = new THREE.Fog(0x121618, 2, 8); // Scaled down fog for smaller object
+
+            // 2. Camera Setup (Moved much closer for a desktop accessory)
+            camera = new THREE.PerspectiveCamera(45, window.innerWidth / window.innerHeight, 0.01, 20);
+            camera.position.set(0.6, 0.4, 0.7); 
+
+            // 3. Renderer Setup
+            renderer = new THREE.WebGLRenderer({ antialias: true, alpha: false });
+            renderer.setSize(window.innerWidth, window.innerHeight);
+            renderer.setPixelRatio(window.devicePixelRatio);
+            renderer.shadowMap.enabled = true;
+            renderer.shadowMap.type = THREE.PCFSoftShadowMap;
+            renderer.toneMapping = THREE.ACESFilmicToneMapping;
+            renderer.toneMappingExposure = 1.1;
+            container.appendChild(renderer.domElement);
+
+            // 4. Lighting Setup
+            const ambientLight = new THREE.AmbientLight(PALETTE.ambient, 0.6);
+            scene.add(ambientLight);
+
+            const dirLight = new THREE.DirectionalLight(PALETTE.lightPoint, 1.5);
+            dirLight.position.set(1, 2, 1);
+            dirLight.castShadow = true;
+            dirLight.shadow.mapSize.width = 2048;
+            dirLight.shadow.mapSize.height = 2048;
+            dirLight.shadow.camera.near = 0.1;
+            dirLight.shadow.camera.far = 5;
+            dirLight.shadow.camera.left = -1;
+            dirLight.shadow.camera.right = 1;
+            dirLight.shadow.camera.top = 1;
+            dirLight.shadow.camera.bottom = -1;
+            dirLight.shadow.bias = -0.0005;
+            scene.add(dirLight);
+
+            const fillLight = new THREE.DirectionalLight(0xaaccff, 0.3);
+            fillLight.position.set(-1, 1, -1);
+            scene.add(fillLight);
+
+            // 5. Environment (Floor & Grid scaled for a desk surface)
+            const floorGeo = new THREE.PlaneGeometry(10, 10);
+            const floorMat = new THREE.MeshStandardMaterial({ 
+                color: PALETTE.floor, 
+                roughness: 0.8, 
+                metalness: 0.1 
+            });
+            const floor = new THREE.Mesh(floorGeo, floorMat);
+            floor.rotation.x = -Math.PI / 2;
+            floor.receiveShadow = true;
+            scene.add(floor);
+
+            const grid = new THREE.GridHelper(2, 40, 0x2B4C54, 0x1A2528); // 5cm grid cells
+            grid.position.y = 0.001; 
+            grid.material.opacity = 0.4;
+            grid.material.transparent = true;
+            scene.add(grid);
+
+            // 6. Generate the Riser
+            riserGroup = createRiser();
+            scene.add(riserGroup);
+
+            // 7. Controls
+            controls = new OrbitControls(camera, renderer.domElement);
+            controls.enableDamping = true;
+            controls.dampingFactor = 0.05;
+            controls.maxPolarAngle = Math.PI / 2 - 0.02;
+            controls.minDistance = 0.3;
+            controls.maxDistance = 2.0;
+            controls.target.set(0, 0.08, 0); 
+
+            // 8. Event Listeners
+            window.addEventListener('resize', onWindowResize);
+            
+            const slider = document.getElementById('height-slider');
+            const display = document.getElementById('height-display');
+            
+            slider.addEventListener('input', (e) => {
+                const level = parseInt(e.target.value);
+                targetHeight = heights[level];
+                
+                // If it's idle or currently trying to lock, force it to unlock first
+                if (animPhase === 0 || animPhase === 3) {
+                    animPhase = 1; 
+                }
+                
+                display.innerText = 'Level ' + level;
+            });
+
+            // POV Buttons Event Listeners
+            document.getElementById('btn-iso').addEventListener('click', () => setPOV(0.6, 0.4, 0.7));
+            document.getElementById('btn-front').addEventListener('click', () => setPOV(0, 0.2, 0.8));
+            document.getElementById('btn-rear').addEventListener('click', () => setPOV(0, 0.2, -0.8));
+            document.getElementById('btn-top').addEventListener('click', () => setPOV(0, 0.8, 0.001)); // Slight Z offset to prevent gimbal lock
+        }
+
+        function setPOV(x, y, z) {
+            targetCameraPos.set(x, y, z);
+            isAnimatingCamera = true;
+        }
+
+        function createRiser() {
+            const group = new THREE.Group();
+            group.name = "riserGroup";
+
+            // --- Specifications (Meters) ---
+            const topWidth = 0.62;
+            const topDepth = 0.30; // Deepened to create an overhang for side modules
+            const topThickness = 0.015;
+            
+            const legWidth = 0.04;
+            const legDepth = 0.30; // Matched to the top surface depth perfectly
+            const legHeight = 0.16;
+
+            // --- Materials ---
+            const topMat = new THREE.MeshPhysicalMaterial({
+                color: PALETTE.bambooTop,
+                roughness: 0.5,
+                metalness: 0.0,
+                clearcoat: 0.3,
+                clearcoatRoughness: 0.4
+            });
+
+            const legMat = new THREE.MeshStandardMaterial({
+                color: PALETTE.plasticLegs,
+                roughness: 0.9,
+                metalness: 0.1
+            });
+            
+            const railMat = new THREE.MeshStandardMaterial({
+                color: PALETTE.rail,
+                roughness: 0.6,
+                metalness: 0.8
+            });
+
+            // Accessory Material (Matte Black / Charcoal)
+            const accessoryMat = new THREE.MeshStandardMaterial({
+                color: 0x222222,
+                roughness: 0.7,
+                metalness: 0.1
+            });
+            
+            // Soft TPU Material for Flexible Cable Slots
+            const tpuMat = new THREE.MeshStandardMaterial({
+                color: 0x151515,
+                roughness: 0.9,
+                metalness: 0.0
+            });
+
+            // --- 1. Top Platform Group ---
+            const topGroup = new THREE.Group();
+            topGroup.position.y = currentHeight;
+            // Z starts at 0 (Locked position)
+            
+            // Main Bamboo Platform
+            const topGeo = new RoundedBoxGeometry(topWidth, topThickness, topDepth, 4, 0.003);
+            const topMesh = new THREE.Mesh(topGeo, topMat);
+            topMesh.castShadow = true;
+            topMesh.receiveShadow = true;
+            topGroup.add(topMesh);
+
+            // Modular Slide-in Rail (Front Underneath)
+            const railGeo = new RoundedBoxGeometry(topWidth - 0.04, 0.008, 0.015, 2, 0.002);
+            const railMesh = new THREE.Mesh(railGeo, railMat);
+            railMesh.position.set(0, -topThickness/2 - 0.004, topDepth/2 - 0.02); 
+            railMesh.castShadow = true;
+            topGroup.add(railMesh);
+
+            // Solid Locking Pegs (Pasak) - Offset to match the new leg position
+            const pegGeo = new THREE.CylinderGeometry(0.006, 0.006, 0.02, 16);
+            
+            const leftPeg = new THREE.Mesh(pegGeo, railMat);
+            leftPeg.rotation.z = Math.PI / 2; 
+            leftPeg.position.set(-topWidth/2 - 0.01, 0, -0.04); // Shifted backwards into the leg track
+            leftPeg.castShadow = true;
+            topGroup.add(leftPeg);
+
+            const rightPeg = new THREE.Mesh(pegGeo, railMat);
+            rightPeg.rotation.z = Math.PI / 2;
+            rightPeg.position.set(topWidth/2 + 0.01, 0, -0.04); 
+            rightPeg.castShadow = true;
+            topGroup.add(rightPeg);
+
+            // --- ADDED: Minimalist Laptop ---
+            const laptopGroup = new THREE.Group();
+            
+            // Premium Aluminum and Glossy Screen Materials
+            const aluMat = new THREE.MeshStandardMaterial({
+                color: 0x9CA3AF, // Space Gray / Silver
+                roughness: 0.3,
+                metalness: 0.8
+            });
+            const displayMat = new THREE.MeshStandardMaterial({
+                color: 0x050505, // Deep glossy black
+                roughness: 0.1,
+                metalness: 0.2
+            });
+            const keyboardMat = new THREE.MeshStandardMaterial({
+                color: 0x1F2937, // Dark grey for keyboard area
+                roughness: 0.8,
+                metalness: 0.1
+            });
+
+            const laptopWidth = 0.30;
+            const laptopDepth = 0.22;
+            const laptopThickness = 0.006;
+
+            // 1. Laptop Base (Keyboard half)
+            const baseGeo = new RoundedBoxGeometry(laptopWidth, laptopThickness, laptopDepth, 2, 0.0015);
+            const baseMesh = new THREE.Mesh(baseGeo, aluMat);
+            baseMesh.position.set(0, laptopThickness/2, 0); // Bottom rests at Y=0 local to laptopGroup
+            baseMesh.castShadow = true; baseMesh.receiveShadow = true;
+            laptopGroup.add(baseMesh);
+
+            // Keyboard Indentation (Visual detail)
+            const kbGeo = new THREE.BoxGeometry(laptopWidth - 0.04, 0.001, laptopDepth - 0.09);
+            const kbMesh = new THREE.Mesh(kbGeo, keyboardMat);
+            kbMesh.position.set(0, laptopThickness + 0.0001, -0.015);
+            laptopGroup.add(kbMesh);
+
+            // Trackpad Indentation
+            const tpGeo = new THREE.BoxGeometry(0.10, 0.001, 0.06);
+            const tpMesh = new THREE.Mesh(tpGeo, keyboardMat);
+            tpMesh.position.set(0, laptopThickness + 0.0001, 0.06);
+            laptopGroup.add(tpMesh);
+
+            // 2. Laptop Lid (Screen half, hinged at the back)
+            const lidGroup = new THREE.Group();
+            lidGroup.position.set(0, laptopThickness, -laptopDepth/2 + 0.005); // Hinge position
+            
+            // Aluminum Lid Cover
+            const lidGeo = new RoundedBoxGeometry(laptopWidth, laptopDepth, 0.004, 2, 0.001);
+            const lidMesh = new THREE.Mesh(lidGeo, aluMat);
+            lidMesh.position.set(0, laptopDepth/2, 0); // Center relative to hinge
+            lidMesh.castShadow = true;
+            lidGroup.add(lidMesh);
+
+            // Glossy Inner Display
+            const screenGeo = new THREE.BoxGeometry(laptopWidth - 0.015, laptopDepth - 0.02, 0.001);
+            const screenMesh = new THREE.Mesh(screenGeo, displayMat);
+            screenMesh.position.set(0, laptopDepth/2 + 0.002, 0.002); // Slightly protruding from inner lid
+            lidGroup.add(screenMesh);
+
+            // Open the lid slightly past 90 degrees for a natural look
+            lidGroup.rotation.x = -Math.PI / 8; // Tilted back
+            laptopGroup.add(lidGroup);
+
+            // Position the laptop perfectly on top of the bamboo platform
+            laptopGroup.position.set(0, topThickness/2, 0.02);
+            topGroup.add(laptopGroup);
+
+
+            group.add(topGroup);
+            group.userData = { topGroup: topGroup };
+
+            // --- 2. Side Legs (3-Level Interlocking Track Mechanism) ---
+            // Legs are now narrower and positioned to leave the front edge exposed
+            function createLeg(isRight) {
+                const legGroup = new THREE.Group();
+                const sign = isRight ? 1 : -1;
+                
+                // Outer Shield Panel
+                const outerGeo = new RoundedBoxGeometry(0.02, legHeight, legDepth, 4, 0.002);
+                const outer = new THREE.Mesh(outerGeo, legMat);
+                outer.position.set(sign * 0.01, legHeight/2, 0);
+                outer.castShadow = true;
+                outer.receiveShadow = true;
+                legGroup.add(outer);
+
+                // Inner Structure (Carving the L-shaped interlocking tracks aligned with new peg pos)
+                const innerX = sign * -0.01;
+
+                // Front Pillar (Extended to the new front edge)
+                const frontGeo = new RoundedBoxGeometry(0.02, legHeight, 0.08, 4, 0.002);
+                const front = new THREE.Mesh(frontGeo, legMat);
+                front.position.set(innerX, legHeight/2, 0.11);
+                front.castShadow = true; front.receiveShadow = true;
+                legGroup.add(front);
+
+                // Back Spine (Extended to the new back edge)
+                const backGeo = new RoundedBoxGeometry(0.02, legHeight, 0.10, 4, 0.002);
+                const back = new THREE.Mesh(backGeo, legMat);
+                back.position.set(innerX, legHeight/2, -0.10);
+                back.castShadow = true; back.receiveShadow = true;
+                legGroup.add(back);
+
+                // Horizontal Separators (Extended to fit the new channel)
+                const sepGeo = new RoundedBoxGeometry(0.02, 0.022, 0.10, 2, 0.002);
+                
+                const sepA = new THREE.Mesh(sepGeo, legMat);
+                sepA.position.set(innerX, 0.149, 0);
+                sepA.castShadow = true; sepA.receiveShadow = true;
+                legGroup.add(sepA);
+
+                const sepB = new THREE.Mesh(new RoundedBoxGeometry(0.02, 0.019, 0.10, 2, 0.002), legMat);
+                sepB.position.set(innerX, 0.1125, 0);
+                sepB.castShadow = true; sepB.receiveShadow = true;
+                legGroup.add(sepB);
+
+                const sepC = new THREE.Mesh(new RoundedBoxGeometry(0.02, 0.019, 0.10, 2, 0.002), legMat);
+                sepC.position.set(innerX, 0.0775, 0);
+                sepC.castShadow = true; sepC.receiveShadow = true;
+                legGroup.add(sepC);
+
+                const sepD = new THREE.Mesh(new RoundedBoxGeometry(0.02, 0.052, 0.10, 2, 0.002), legMat);
+                sepD.position.set(innerX, 0.026, 0);
+                sepD.castShadow = true; sepD.receiveShadow = true;
+                legGroup.add(sepD);
+
+                // Add the T-Slot Rail to the OUTER face of the stationary leg
+                const sideRailGeo = new RoundedBoxGeometry(0.008, 0.015, 0.08, 2, 0.002);
+                const sideRail = new THREE.Mesh(sideRailGeo, railMat);
+                sideRail.position.set(sign * 0.024, 0.1475, 0); // Moved up to align near the top edge
+                sideRail.castShadow = true;
+                legGroup.add(sideRail);
+
+                // Position the entire leg assembly at the edges of the top (Centered at Z=0)
+                legGroup.position.set(sign * (topWidth/2 + legWidth/2), 0, 0);
+                return legGroup;
+            }
+
+            group.add(createLeg(false)); // Left Leg
+            group.add(createLeg(true));  // Right Leg
+
+            // --- MODULE 1: Interlocking Phone Holder (Right Side Leg, Outside, Facing User) ---
+            const phoneGroup = new THREE.Group();
+            const phoneMat = legMat; // Recycled compressed plastic matching the image
+            
+            // 1. Base Plate
+            const phoneBaseGeo = new RoundedBoxGeometry(0.072, 0.012, 0.070, 2, 0.002);
+            const phoneBase = new THREE.Mesh(phoneBaseGeo, phoneMat);
+            phoneBase.castShadow = true; phoneBase.receiveShadow = true;
+            phoneGroup.add(phoneBase);
+            
+            // 2. Front Lip (Prevents phone from sliding out)
+            const phoneLipGeo = new RoundedBoxGeometry(0.072, 0.015, 0.008, 2, 0.002);
+            const phoneLip = new THREE.Mesh(phoneLipGeo, phoneMat);
+            phoneLip.position.set(0, 0.0135, 0.031);
+            phoneLip.castShadow = true; phoneLip.receiveShadow = true;
+            phoneGroup.add(phoneLip);
+
+            // 3. Backrest (Tilted back for a 60 degree viewing angle)
+            const phoneBackGeo = new RoundedBoxGeometry(0.072, 0.08, 0.008, 2, 0.002);
+            const phoneBack = new THREE.Mesh(phoneBackGeo, phoneMat);
+            // Positioned near the back, angled 30 degrees back from vertical
+            phoneBack.position.set(0, 0.04, -0.015);
+            phoneBack.rotation.x = -Math.PI / 6; 
+            phoneBack.castShadow = true; phoneBack.receiveShadow = true;
+            phoneGroup.add(phoneBack);
+            
+            // 4. Support Spine (Back vertical support block)
+            const phoneSpineGeo = new RoundedBoxGeometry(0.015, 0.05, 0.03, 2, 0.002);
+            const phoneSpine = new THREE.Mesh(phoneSpineGeo, phoneMat);
+            phoneSpine.position.set(0, 0.025, -0.025);
+            phoneSpine.rotation.x = -Math.PI / 12; // Slight angle to blend into backrest
+            phoneSpine.castShadow = true; phoneSpine.receiveShadow = true;
+            phoneGroup.add(phoneSpine);
+
+            // 5. T-Slot interface pointing LEFT (into the right leg rail)
+            // Sticking out of the left side of the base
+            const pStem = new THREE.Mesh(new THREE.BoxGeometry(0.012, 0.006, 0.048), phoneMat);
+            pStem.position.set(-0.042, 0, -0.01); // Shifted Z to align exactly with the rail center
+            pStem.castShadow = true; phoneGroup.add(pStem);
+            
+            const pCross = new THREE.Mesh(new THREE.BoxGeometry(0.004, 0.012, 0.048), phoneMat);
+            pCross.position.set(-0.050, 0, -0.01); 
+            pCross.castShadow = true; phoneGroup.add(pCross);
+
+            // Positioned absolute X=0.404 perfectly anchors the left tab into the leg rail (X=0.354)
+            phoneGroup.position.set(0.404, 0.1475, 0.01); 
+            group.add(phoneGroup); // Attached to stationary root group
+
+            // --- MODULE 2: Detachable Cable Management Dock (Left Side Leg, Outside) ---
+            const dockGroup = new THREE.Group();
+            const dockBodyMat = legMat; 
+
+            // Expanded base to hold 4 slots (5 pillars)
+            const dockBase = new THREE.Mesh(new RoundedBoxGeometry(0.028, 0.015, 0.092, 2, 0.002), dockBodyMat);
+            dockBase.position.set(0, 0, 0); 
+            dockBase.castShadow = true; dockBase.receiveShadow = true;
+            dockGroup.add(dockBase);
+
+            const pillarGeo = new RoundedBoxGeometry(0.028, 0.025, 0.012, 2, 0.002);
+            const pZ = [-0.04, -0.02, 0, 0.02, 0.04]; // 5 Pillars
+            pZ.forEach(z => {
+                const pillar = new THREE.Mesh(pillarGeo, dockBodyMat);
+                pillar.position.set(0, 0.02, z); 
+                pillar.castShadow = true; pillar.receiveShadow = true;
+                dockGroup.add(pillar);
+            });
+
+            const tpuWallGeo = new THREE.BoxGeometry(0.028, 0.025, 0.002);
+            const tpuBaseGeo = new THREE.BoxGeometry(0.028, 0.002, 0.006);
+            const cableGeo = new THREE.CylinderGeometry(0.002, 0.002, 0.15, 8);
+            
+            // 4 Flexible TPU Slots
+            [-0.03, -0.01, 0.01, 0.03].forEach((z, index) => {
+                const w1 = new THREE.Mesh(tpuWallGeo, tpuMat); w1.position.set(0, 0.02, z - 0.004); dockGroup.add(w1);
+                const w2 = new THREE.Mesh(tpuWallGeo, tpuMat); w2.position.set(0, 0.02, z + 0.004); dockGroup.add(w2);
+                const b = new THREE.Mesh(tpuBaseGeo, tpuMat); b.position.set(0, 0.0085, z); dockGroup.add(b);
+
+                const cableMat = new THREE.MeshStandardMaterial({color: index % 2 === 0 ? 0x111111 : 0x999999, roughness: 0.8});
+                const cable = new THREE.Mesh(cableGeo, cableMat);
+                cable.position.set(0, -0.05, z);
+                dockGroup.add(cable);
+            });
+
+            // T-Slot interface pointing RIGHT (into the left leg)
+            const tStem = new THREE.Mesh(new THREE.BoxGeometry(0.012, 0.006, 0.06), dockBodyMat);
+            tStem.position.set(0.02, 0.02, 0); 
+            tStem.castShadow = true; dockGroup.add(tStem);
+            
+            const tCross = new THREE.Mesh(new THREE.BoxGeometry(0.004, 0.012, 0.06), dockBodyMat);
+            tCross.position.set(0.028, 0.02, 0); 
+            tCross.castShadow = true; dockGroup.add(tCross);
+
+            // Position perfectly aligned with the top edge of the leg side (Y = 0.1275)
+            dockGroup.position.set(-0.382, 0.1275, 0);
+            group.add(dockGroup); // Attached to stationary root group
+
+            // --- ADDED: Keyboard & Mouse in Storage Space (Underneath) ---
+            const storageGroup = new THREE.Group();
+
+            // Keyboard Base (Re-using laptop aluminum material)
+            const extKbGeo = new RoundedBoxGeometry(0.32, 0.006, 0.12, 2, 0.002);
+            const extKbMesh = new THREE.Mesh(extKbGeo, aluMat); 
+            extKbMesh.position.set(-0.06, 0.003, 0.04);
+            extKbMesh.castShadow = true; extKbMesh.receiveShadow = true;
+            storageGroup.add(extKbMesh);
+
+            // Keyboard Keys Area (Re-using laptop keyboard material)
+            const extKbKeysGeo = new THREE.BoxGeometry(0.30, 0.001, 0.10);
+            const extKbKeysMesh = new THREE.Mesh(extKbKeysGeo, keyboardMat); 
+            extKbKeysMesh.position.set(-0.06, 0.0065, 0.04);
+            extKbKeysMesh.receiveShadow = true;
+            storageGroup.add(extKbKeysMesh);
+
+            // Mouse
+            const mouseGeo = new RoundedBoxGeometry(0.06, 0.014, 0.10, 4, 0.005);
+            const mouseMesh = new THREE.Mesh(mouseGeo, aluMat);
+            mouseMesh.position.set(0.18, 0.007, 0.04);
+            mouseMesh.castShadow = true; mouseMesh.receiveShadow = true;
+            storageGroup.add(mouseMesh);
+
+            group.add(storageGroup);
+
+            return group;
+        }
+
+        function onWindowResize() {
+            camera.aspect = window.innerWidth / window.innerHeight;
+            camera.updateProjectionMatrix();
+            renderer.setSize(window.innerWidth, window.innerHeight);
+        }
+
+        function animate() {
+            requestAnimationFrame(animate);
+
+            // Execute mechanical sequence: Slide out -> Align Y -> Slide in
+            if (riserGroup && riserGroup.userData.topGroup) {
+                const top = riserGroup.userData.topGroup;
+                const speed = 0.18;
+                const threshold = 0.001;
+
+                if (animPhase === 1) {
+                    // Step 1: LIFT (Unlock horizontally into the vertical channel)
+                    top.position.z += (unlockZ - top.position.z) * speed;
+                    if (Math.abs(top.position.z - unlockZ) < threshold) {
+                        top.position.z = unlockZ;
+                        animPhase = 2; // Proceed to vertical align
+                    }
+                } else if (animPhase === 2) {
+                    // Step 2: ALIGN (Move vertically to the selected slot)
+                    top.position.y += (targetHeight - top.position.y) * speed;
+                    if (Math.abs(top.position.y - targetHeight) < threshold) {
+                        top.position.y = targetHeight;
+                        currentHeight = targetHeight;
+                        animPhase = 3; // Proceed to lock
+                    }
+                } else if (animPhase === 3) {
+                    // Step 3: SLIDE TO LOCK (Move horizontally back into the slot)
+                    top.position.z += (0 - top.position.z) * speed;
+                    if (Math.abs(top.position.z - 0) < threshold) {
+                        top.position.z = 0;
+                        animPhase = 0; // Idle state
+                    }
+                }
+                
+                // Track focus smoothly based on the current height of the top platform
+                controls.target.y += (top.position.y - controls.target.y) * 0.05;
+            }
+
+            // Smoothly move camera if a POV button was clicked
+            if (isAnimatingCamera) {
+                camera.position.lerp(targetCameraPos, 0.08);
+                if (camera.position.distanceTo(targetCameraPos) < 0.005) {
+                    camera.position.copy(targetCameraPos);
+                    isAnimatingCamera = false;
+                }
+            }
+
+            controls.update();
+            renderer.render(scene, camera);
+        }
+    </script>
+</body>
+</html>
