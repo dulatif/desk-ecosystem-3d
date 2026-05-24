@@ -1,5 +1,6 @@
 <!DOCTYPE html>
 <html lang="en">
+
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
@@ -10,15 +11,18 @@
         body {
             margin: 0;
             overflow: hidden;
-            background-color: #121618; /* Dark premium background */
+            background-color: #121618;
+            /* Dark premium background */
             font-family: 'Segoe UI', Roboto, Helvetica, Arial, sans-serif;
             color: #E2E8F0;
         }
+
         #canvas-container {
             width: 100vw;
             height: 100vh;
             display: block;
         }
+
         #ui-panel {
             background: rgba(26, 32, 35, 0.85);
             backdrop-filter: blur(12px);
@@ -26,27 +30,31 @@
             border: 1px solid rgba(255, 255, 255, 0.1);
             box-shadow: 0 20px 40px rgba(0, 0, 0, 0.4);
         }
-        
+
         /* Custom styling for the range slider to look premium */
         input[type=range] {
             -webkit-appearance: none;
             width: 100%;
             background: transparent;
         }
+
         input[type=range]::-webkit-slider-thumb {
             -webkit-appearance: none;
             height: 20px;
             width: 20px;
             border-radius: 50%;
-            background: #4FD1C5; /* Muted Teal Accent */
+            background: #4FD1C5;
+            /* Muted Teal Accent */
             cursor: pointer;
             margin-top: -8px;
             box-shadow: 0 0 10px rgba(79, 209, 197, 0.5);
             transition: transform 0.1s;
         }
+
         input[type=range]::-webkit-slider-thumb:hover {
             transform: scale(1.2);
         }
+
         input[type=range]::-webkit-slider-runnable-track {
             width: 100%;
             height: 4px;
@@ -55,7 +63,7 @@
             border-radius: 2px;
         }
     </style>
-    
+
     <!-- Import maps polyfill -->
     <script async src="https://unpkg.com/es-module-shims@1.8.0/dist/es-module-shims.js"></script>
     <!-- Import map for Three.js -->
@@ -68,18 +76,20 @@
         }
     </script>
 </head>
+
 <body>
 
     <!-- UI Overlay -->
     <div class="fixed top-0 left-0 w-full h-full pointer-events-none flex flex-col justify-between p-6 z-10">
         <header class="pointer-events-auto">
-            <h1 class="text-3xl font-light tracking-wide text-white drop-shadow-md">Modular & Adjustable Desk <span class="font-bold text-[#4FD1C5]">Ecosystem</span></h1>
-            <p class="text-sm text-gray-400 mt-1">Sustainable Bamboo & Recycled Plastic</p>
+            <h1 id="header-title" class="text-3xl font-light tracking-wide text-white drop-shadow-md">Modular Desk <span
+                    id="header-span" class="font-bold text-[#4FD1C5]">Eco Riser</span></h1>
+            <p id="header-subtitle" class="text-sm text-gray-400 mt-1">Sustainable Bamboo & Recycled Plastic</p>
         </header>
 
         <main class="pointer-events-auto self-end sm:self-center sm:mb-8 w-full max-w-2xl">
             <div id="ui-panel" class="rounded-2xl p-6 flex flex-col sm:flex-row gap-8 items-center justify-between">
-                
+
                 <!-- Height Control -->
                 <div class="w-full sm:w-1/2">
                     <div class="flex justify-between items-center mb-4">
@@ -94,7 +104,7 @@
                         <span>3 (High)</span>
                     </div>
                 </div>
-                
+
                 <!-- Divider -->
                 <div class="hidden sm:block w-px h-16 bg-gray-700"></div>
                 <div class="block sm:hidden w-full h-px bg-gray-700 my-1"></div>
@@ -103,12 +113,55 @@
                 <div class="w-full sm:w-1/2">
                     <h2 class="text-sm font-medium text-gray-400 mb-3 text-center sm:text-left">Camera View</h2>
                     <div class="grid grid-cols-2 gap-2">
-                        <button id="btn-iso" class="text-xs px-3 py-2 rounded-lg bg-gray-800 text-gray-300 hover:bg-[#4FD1C5] hover:text-gray-900 transition-colors font-medium text-center">Isometric</button>
-                        <button id="btn-top" class="text-xs px-3 py-2 rounded-lg bg-gray-800 text-gray-300 hover:bg-[#4FD1C5] hover:text-gray-900 transition-colors font-medium text-center">Top View</button>
-                        <button id="btn-front" class="text-xs px-3 py-2 rounded-lg bg-gray-800 text-gray-300 hover:bg-[#4FD1C5] hover:text-gray-900 transition-colors font-medium text-center">Front View</button>
-                        <button id="btn-rear" class="text-xs px-3 py-2 rounded-lg bg-gray-800 text-gray-300 hover:bg-[#4FD1C5] hover:text-gray-900 transition-colors font-medium text-center">Rear View</button>
+                        <button id="btn-iso"
+                            class="text-xs px-3 py-2 rounded-lg bg-gray-800 text-gray-300 hover:bg-[#4FD1C5] hover:text-gray-900 transition-colors font-medium text-center">Isometric</button>
+                        <button id="btn-top"
+                            class="text-xs px-3 py-2 rounded-lg bg-gray-800 text-gray-300 hover:bg-[#4FD1C5] hover:text-gray-900 transition-colors font-medium text-center">Top
+                            View</button>
+                        <button id="btn-front"
+                            class="text-xs px-3 py-2 rounded-lg bg-gray-800 text-gray-300 hover:bg-[#4FD1C5] hover:text-gray-900 transition-colors font-medium text-center">Front
+                            View</button>
+                        <button id="btn-rear"
+                            class="text-xs px-3 py-2 rounded-lg bg-gray-800 text-gray-300 hover:bg-[#4FD1C5] hover:text-gray-900 transition-colors font-medium text-center">Rear
+                            View</button>
+                    </div>
+                    <!-- Skeleton/ISO Mode Toggle -->
+                    <div
+                        class="mt-4 pt-3 border-t border-gray-700 flex items-center justify-between pointer-events-auto">
+                        <span class="text-xs text-gray-300 font-semibold tracking-wide">ISO Template </span>
+                        <label class="relative inline-flex items-center cursor-pointer">
+                            <input type="checkbox" id="iso-toggle" class="sr-only peer">
+                            <div
+                                class="w-9 h-5 bg-gray-700 peer-focus:outline-none rounded-full peer peer-checked:after:translate-x-full peer-checked:after:border-white after:content-[''] after:absolute after:top-[2px] after:left-[2px] after:bg-white after:border-gray-300 after:border after:rounded-full after:h-4 after:w-4 after:transition-all peer-checked:bg-[#4FD1C5]">
+                            </div>
+                        </label>
                     </div>
                 </div>
+            </div>
+
+            <!-- ISO Options Extension Panel -->
+            <div id="iso-options-panel"
+                class="hidden mt-4 rounded-2xl p-4 bg-gray-900/90 border border-gray-800 backdrop-blur-md shadow-2xl flex flex-wrap gap-4 items-center justify-between transition-all duration-300 pointer-events-auto">
+                <div class="flex items-center gap-3">
+                    <span class="text-xs font-semibold uppercase tracking-wider text-gray-400">Template Style:</span>
+                    <div class="flex rounded-lg overflow-hidden border border-gray-700 bg-gray-800 p-0.5">
+                        <button id="theme-cyber"
+                            class="text-xs px-3 py-1.5 rounded-md bg-[#4FD1C5] text-gray-900 font-bold transition-all">Cyber</button>
+                        <button id="theme-blueprint"
+                            class="text-xs px-3 py-1.5 rounded-md text-gray-400 hover:text-white transition-all">Blueprint</button>
+                        <button id="theme-tech"
+                            class="text-xs px-3 py-1.5 rounded-md text-gray-400 hover:text-white transition-all">Technical</button>
+                    </div>
+                </div>
+                <button id="btn-screenshot"
+                    class="flex items-center gap-2 text-xs px-4 py-2 rounded-lg bg-[#4FD1C5] text-gray-900 font-bold hover:bg-[#3db8ac] transition-colors shadow-lg shadow-teal-500/20">
+                    <svg xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24" stroke-width="2"
+                        stroke="currentColor" class="w-4 h-4">
+                        <path stroke-linecap="round" stroke-linejoin="round"
+                            d="M3 16.5v2.25A2.25 2.25 0 005.25 21h13.5A2.25 2.25 0 0021 18.75V16.5M16.5 12L12 16.5m0 0L7.5 12m4.5 4.5V3" />
+                    </svg>
+                    Export Image
+                </button>
             </div>
         </main>
     </div>
@@ -124,7 +177,12 @@
 
         let scene, camera, renderer, controls;
         let riserGroup;
-        
+        let floorMesh; // Store floor mesh globally
+        let gridHelper; // Store grid helper globally
+        let orthoCamera, activeCamera; // Add Orthographic camera variables
+        let isIsoMode = false;
+        let isoTheme = 'cyber';
+
         // Animation State (3 specific levels based on the peg system)
         const heights = { 1: 0.06, 2: 0.095, 3: 0.13 };
         let currentHeight = heights[2];
@@ -141,9 +199,9 @@
             bambooTop: 0xDEB887,    // Warm Bamboo / Recycled Wood
             plasticLegs: 0x4A4D52,  // Recycled Compressed Plastic (Dark grey)
             rail: 0x2A2A2A,         // Dark metal for the slide-in rail
-            floor: 0x182427,        
+            floor: 0x182427,
             ambient: 0xffffff,
-            lightPoint: 0xfff4e5    
+            lightPoint: 0xfff4e5
         };
 
         init();
@@ -159,10 +217,13 @@
 
             // 2. Camera Setup (Moved much closer for a desktop accessory)
             camera = new THREE.PerspectiveCamera(45, window.innerWidth / window.innerHeight, 0.01, 20);
-            camera.position.set(0.6, 0.4, 0.7); 
+            camera.position.set(0.6, 0.4, 0.7);
 
-            // 3. Renderer Setup
-            renderer = new THREE.WebGLRenderer({ antialias: true, alpha: false });
+            updateOrthoCamera();
+            activeCamera = camera;
+
+            // 3. Renderer Setup (preserveDrawingBuffer enabled to allow screenshot exports)
+            renderer = new THREE.WebGLRenderer({ antialias: true, alpha: false, preserveDrawingBuffer: true });
             renderer.setSize(window.innerWidth, window.innerHeight);
             renderer.setPixelRatio(window.devicePixelRatio);
             renderer.shadowMap.enabled = true;
@@ -195,50 +256,46 @@
 
             // 5. Environment (Floor & Grid scaled for a desk surface)
             const floorGeo = new THREE.PlaneGeometry(10, 10);
-            const floorMat = new THREE.MeshStandardMaterial({ 
-                color: PALETTE.floor, 
-                roughness: 0.8, 
-                metalness: 0.1 
+            const floorMat = new THREE.MeshStandardMaterial({
+                color: PALETTE.floor,
+                roughness: 0.8,
+                metalness: 0.1
             });
-            const floor = new THREE.Mesh(floorGeo, floorMat);
-            floor.rotation.x = -Math.PI / 2;
-            floor.receiveShadow = true;
-            scene.add(floor);
+            floorMesh = new THREE.Mesh(floorGeo, floorMat);
+            floorMesh.rotation.x = -Math.PI / 2;
+            floorMesh.receiveShadow = true;
+            scene.add(floorMesh);
 
-            const grid = new THREE.GridHelper(2, 40, 0x2B4C54, 0x1A2528); // 5cm grid cells
-            grid.position.y = 0.001; 
-            grid.material.opacity = 0.4;
-            grid.material.transparent = true;
-            scene.add(grid);
+            setGridHelper(0x2B4C54, 0x1A2528, 0.4);
 
             // 6. Generate the Riser
             riserGroup = createRiser();
             scene.add(riserGroup);
 
             // 7. Controls
-            controls = new OrbitControls(camera, renderer.domElement);
+            controls = new OrbitControls(activeCamera, renderer.domElement);
             controls.enableDamping = true;
             controls.dampingFactor = 0.05;
             controls.maxPolarAngle = Math.PI / 2 - 0.02;
             controls.minDistance = 0.3;
             controls.maxDistance = 2.0;
-            controls.target.set(0, 0.08, 0); 
+            controls.target.set(0, 0.08, 0);
 
             // 8. Event Listeners
             window.addEventListener('resize', onWindowResize);
-            
+
             const slider = document.getElementById('height-slider');
             const display = document.getElementById('height-display');
-            
+
             slider.addEventListener('input', (e) => {
                 const level = parseInt(e.target.value);
                 targetHeight = heights[level];
-                
+
                 // If it's idle or currently trying to lock, force it to unlock first
                 if (animPhase === 0 || animPhase === 3) {
-                    animPhase = 1; 
+                    animPhase = 1;
                 }
-                
+
                 display.innerText = 'Level ' + level;
             });
 
@@ -247,10 +304,47 @@
             document.getElementById('btn-front').addEventListener('click', () => setPOV(0, 0.2, 0.8));
             document.getElementById('btn-rear').addEventListener('click', () => setPOV(0, 0.2, -0.8));
             document.getElementById('btn-top').addEventListener('click', () => setPOV(0, 0.8, 0.001)); // Slight Z offset to prevent gimbal lock
+
+            // ISO Toggle & themes event listeners
+            const isoToggle = document.getElementById('iso-toggle');
+            const optionsPanel = document.getElementById('iso-options-panel');
+
+            isoToggle.addEventListener('change', (e) => {
+                isIsoMode = e.target.checked;
+                if (isIsoMode) {
+                    optionsPanel.classList.remove('hidden');
+                    setCamera('ortho');
+                    applyISOTheme(isoTheme);
+                } else {
+                    optionsPanel.classList.add('hidden');
+                    disableISOMode();
+                }
+            });
+
+            document.getElementById('theme-cyber').addEventListener('click', () => {
+                applyISOTheme('cyber');
+                updateThemeUI('cyber');
+            });
+            document.getElementById('theme-blueprint').addEventListener('click', () => {
+                applyISOTheme('blueprint');
+                updateThemeUI('blueprint');
+            });
+            document.getElementById('theme-tech').addEventListener('click', () => {
+                applyISOTheme('tech');
+                updateThemeUI('tech');
+            });
+
+            document.getElementById('btn-screenshot').addEventListener('click', () => {
+                exportCanvasImage();
+            });
         }
 
         function setPOV(x, y, z) {
-            targetCameraPos.set(x, y, z);
+            if (isIsoMode && x === 0.6 && y === 0.4 && z === 0.7) {
+                targetCameraPos.set(0.55, 0.389, 0.55);
+            } else {
+                targetCameraPos.set(x, y, z);
+            }
             isAnimatingCamera = true;
         }
 
@@ -262,7 +356,7 @@
             const topWidth = 0.62;
             const topDepth = 0.30; // Deepened to create an overhang for side modules
             const topThickness = 0.015;
-            
+
             const legWidth = 0.04;
             const legDepth = 0.30; // Matched to the top surface depth perfectly
             const legHeight = 0.16;
@@ -281,7 +375,7 @@
                 roughness: 0.9,
                 metalness: 0.1
             });
-            
+
             const railMat = new THREE.MeshStandardMaterial({
                 color: PALETTE.rail,
                 roughness: 0.6,
@@ -294,7 +388,7 @@
                 roughness: 0.7,
                 metalness: 0.1
             });
-            
+
             // Soft TPU Material for Flexible Cable Slots
             const tpuMat = new THREE.MeshStandardMaterial({
                 color: 0x151515,
@@ -306,7 +400,7 @@
             const topGroup = new THREE.Group();
             topGroup.position.y = currentHeight;
             // Z starts at 0 (Locked position)
-            
+
             // Main Bamboo Platform
             const topGeo = new RoundedBoxGeometry(topWidth, topThickness, topDepth, 4, 0.003);
             const topMesh = new THREE.Mesh(topGeo, topMat);
@@ -317,28 +411,28 @@
             // Modular Slide-in Rail (Front Underneath)
             const railGeo = new RoundedBoxGeometry(topWidth - 0.04, 0.008, 0.015, 2, 0.002);
             const railMesh = new THREE.Mesh(railGeo, railMat);
-            railMesh.position.set(0, -topThickness/2 - 0.004, topDepth/2 - 0.02); 
+            railMesh.position.set(0, -topThickness / 2 - 0.004, topDepth / 2 - 0.02);
             railMesh.castShadow = true;
             topGroup.add(railMesh);
 
             // Solid Locking Pegs (Pasak) - Offset to match the new leg position
             const pegGeo = new THREE.CylinderGeometry(0.006, 0.006, 0.02, 16);
-            
+
             const leftPeg = new THREE.Mesh(pegGeo, railMat);
-            leftPeg.rotation.z = Math.PI / 2; 
-            leftPeg.position.set(-topWidth/2 - 0.01, 0, -0.04); // Shifted backwards into the leg track
+            leftPeg.rotation.z = Math.PI / 2;
+            leftPeg.position.set(-topWidth / 2 - 0.01, 0, -0.04); // Shifted backwards into the leg track
             leftPeg.castShadow = true;
             topGroup.add(leftPeg);
 
             const rightPeg = new THREE.Mesh(pegGeo, railMat);
             rightPeg.rotation.z = Math.PI / 2;
-            rightPeg.position.set(topWidth/2 + 0.01, 0, -0.04); 
+            rightPeg.position.set(topWidth / 2 + 0.01, 0, -0.04);
             rightPeg.castShadow = true;
             topGroup.add(rightPeg);
 
             // --- ADDED: Minimalist Laptop ---
             const laptopGroup = new THREE.Group();
-            
+
             // Premium Aluminum and Glossy Screen Materials
             const aluMat = new THREE.MeshStandardMaterial({
                 color: 0x9CA3AF, // Space Gray / Silver
@@ -363,7 +457,7 @@
             // 1. Laptop Base (Keyboard half)
             const baseGeo = new RoundedBoxGeometry(laptopWidth, laptopThickness, laptopDepth, 2, 0.0015);
             const baseMesh = new THREE.Mesh(baseGeo, aluMat);
-            baseMesh.position.set(0, laptopThickness/2, 0); // Bottom rests at Y=0 local to laptopGroup
+            baseMesh.position.set(0, laptopThickness / 2, 0); // Bottom rests at Y=0 local to laptopGroup
             baseMesh.castShadow = true; baseMesh.receiveShadow = true;
             laptopGroup.add(baseMesh);
 
@@ -381,19 +475,19 @@
 
             // 2. Laptop Lid (Screen half, hinged at the back)
             const lidGroup = new THREE.Group();
-            lidGroup.position.set(0, laptopThickness, -laptopDepth/2 + 0.005); // Hinge position
-            
+            lidGroup.position.set(0, laptopThickness, -laptopDepth / 2 + 0.005); // Hinge position
+
             // Aluminum Lid Cover
             const lidGeo = new RoundedBoxGeometry(laptopWidth, laptopDepth, 0.004, 2, 0.001);
             const lidMesh = new THREE.Mesh(lidGeo, aluMat);
-            lidMesh.position.set(0, laptopDepth/2, 0); // Center relative to hinge
+            lidMesh.position.set(0, laptopDepth / 2, 0); // Center relative to hinge
             lidMesh.castShadow = true;
             lidGroup.add(lidMesh);
 
             // Glossy Inner Display
             const screenGeo = new THREE.BoxGeometry(laptopWidth - 0.015, laptopDepth - 0.02, 0.001);
             const screenMesh = new THREE.Mesh(screenGeo, displayMat);
-            screenMesh.position.set(0, laptopDepth/2 + 0.002, 0.002); // Slightly protruding from inner lid
+            screenMesh.position.set(0, laptopDepth / 2 + 0.002, 0.002); // Slightly protruding from inner lid
             lidGroup.add(screenMesh);
 
             // Open the lid slightly past 90 degrees for a natural look
@@ -401,23 +495,26 @@
             laptopGroup.add(lidGroup);
 
             // Position the laptop perfectly on top of the bamboo platform
-            laptopGroup.position.set(0, topThickness/2, 0.02);
+            laptopGroup.position.set(0, topThickness / 2, 0.02);
             topGroup.add(laptopGroup);
 
 
             group.add(topGroup);
-            group.userData = { topGroup: topGroup };
+            group.userData = {
+                topGroup: topGroup,
+                laptopGroup: laptopGroup
+            };
 
             // --- 2. Side Legs (3-Level Interlocking Track Mechanism) ---
             // Legs are now narrower and positioned to leave the front edge exposed
             function createLeg(isRight) {
                 const legGroup = new THREE.Group();
                 const sign = isRight ? 1 : -1;
-                
+
                 // Outer Shield Panel
                 const outerGeo = new RoundedBoxGeometry(0.02, legHeight, legDepth, 4, 0.002);
                 const outer = new THREE.Mesh(outerGeo, legMat);
-                outer.position.set(sign * 0.01, legHeight/2, 0);
+                outer.position.set(sign * 0.01, legHeight / 2, 0);
                 outer.castShadow = true;
                 outer.receiveShadow = true;
                 legGroup.add(outer);
@@ -428,20 +525,20 @@
                 // Front Pillar (Extended to the new front edge)
                 const frontGeo = new RoundedBoxGeometry(0.02, legHeight, 0.08, 4, 0.002);
                 const front = new THREE.Mesh(frontGeo, legMat);
-                front.position.set(innerX, legHeight/2, 0.11);
+                front.position.set(innerX, legHeight / 2, 0.11);
                 front.castShadow = true; front.receiveShadow = true;
                 legGroup.add(front);
 
                 // Back Spine (Extended to the new back edge)
                 const backGeo = new RoundedBoxGeometry(0.02, legHeight, 0.10, 4, 0.002);
                 const back = new THREE.Mesh(backGeo, legMat);
-                back.position.set(innerX, legHeight/2, -0.10);
+                back.position.set(innerX, legHeight / 2, -0.10);
                 back.castShadow = true; back.receiveShadow = true;
                 legGroup.add(back);
 
                 // Horizontal Separators (Extended to fit the new channel)
                 const sepGeo = new RoundedBoxGeometry(0.02, 0.022, 0.10, 2, 0.002);
-                
+
                 const sepA = new THREE.Mesh(sepGeo, legMat);
                 sepA.position.set(innerX, 0.149, 0);
                 sepA.castShadow = true; sepA.receiveShadow = true;
@@ -470,7 +567,7 @@
                 legGroup.add(sideRail);
 
                 // Position the entire leg assembly at the edges of the top (Centered at Z=0)
-                legGroup.position.set(sign * (topWidth/2 + legWidth/2), 0, 0);
+                legGroup.position.set(sign * (topWidth / 2 + legWidth / 2), 0, 0);
                 return legGroup;
             }
 
@@ -480,13 +577,13 @@
             // --- MODULE 1: Interlocking Phone Holder (Right Side Leg, Outside, Facing User) ---
             const phoneGroup = new THREE.Group();
             const phoneMat = legMat; // Recycled compressed plastic matching the image
-            
+
             // 1. Base Plate
             const phoneBaseGeo = new RoundedBoxGeometry(0.072, 0.012, 0.070, 2, 0.002);
             const phoneBase = new THREE.Mesh(phoneBaseGeo, phoneMat);
             phoneBase.castShadow = true; phoneBase.receiveShadow = true;
             phoneGroup.add(phoneBase);
-            
+
             // 2. Front Lip (Prevents phone from sliding out)
             const phoneLipGeo = new RoundedBoxGeometry(0.072, 0.015, 0.008, 2, 0.002);
             const phoneLip = new THREE.Mesh(phoneLipGeo, phoneMat);
@@ -499,10 +596,10 @@
             const phoneBack = new THREE.Mesh(phoneBackGeo, phoneMat);
             // Positioned near the back, angled 30 degrees back from vertical
             phoneBack.position.set(0, 0.04, -0.015);
-            phoneBack.rotation.x = -Math.PI / 6; 
+            phoneBack.rotation.x = -Math.PI / 6;
             phoneBack.castShadow = true; phoneBack.receiveShadow = true;
             phoneGroup.add(phoneBack);
-            
+
             // 4. Support Spine (Back vertical support block)
             const phoneSpineGeo = new RoundedBoxGeometry(0.015, 0.05, 0.03, 2, 0.002);
             const phoneSpine = new THREE.Mesh(phoneSpineGeo, phoneMat);
@@ -516,22 +613,22 @@
             const pStem = new THREE.Mesh(new THREE.BoxGeometry(0.012, 0.006, 0.048), phoneMat);
             pStem.position.set(-0.042, 0, -0.01); // Shifted Z to align exactly with the rail center
             pStem.castShadow = true; phoneGroup.add(pStem);
-            
+
             const pCross = new THREE.Mesh(new THREE.BoxGeometry(0.004, 0.012, 0.048), phoneMat);
-            pCross.position.set(-0.050, 0, -0.01); 
+            pCross.position.set(-0.050, 0, -0.01);
             pCross.castShadow = true; phoneGroup.add(pCross);
 
             // Positioned absolute X=0.404 perfectly anchors the left tab into the leg rail (X=0.354)
-            phoneGroup.position.set(0.404, 0.1475, 0.01); 
+            phoneGroup.position.set(0.404, 0.1475, 0.01);
             group.add(phoneGroup); // Attached to stationary root group
 
             // --- MODULE 2: Detachable Cable Management Dock (Left Side Leg, Outside) ---
             const dockGroup = new THREE.Group();
-            const dockBodyMat = legMat; 
+            const dockBodyMat = legMat;
 
             // Expanded base to hold 4 slots (5 pillars)
             const dockBase = new THREE.Mesh(new RoundedBoxGeometry(0.028, 0.015, 0.092, 2, 0.002), dockBodyMat);
-            dockBase.position.set(0, 0, 0); 
+            dockBase.position.set(0, 0, 0);
             dockBase.castShadow = true; dockBase.receiveShadow = true;
             dockGroup.add(dockBase);
 
@@ -539,7 +636,7 @@
             const pZ = [-0.04, -0.02, 0, 0.02, 0.04]; // 5 Pillars
             pZ.forEach(z => {
                 const pillar = new THREE.Mesh(pillarGeo, dockBodyMat);
-                pillar.position.set(0, 0.02, z); 
+                pillar.position.set(0, 0.02, z);
                 pillar.castShadow = true; pillar.receiveShadow = true;
                 dockGroup.add(pillar);
             });
@@ -547,14 +644,14 @@
             const tpuWallGeo = new THREE.BoxGeometry(0.028, 0.025, 0.002);
             const tpuBaseGeo = new THREE.BoxGeometry(0.028, 0.002, 0.006);
             const cableGeo = new THREE.CylinderGeometry(0.002, 0.002, 0.15, 8);
-            
+
             // 4 Flexible TPU Slots
             [-0.03, -0.01, 0.01, 0.03].forEach((z, index) => {
                 const w1 = new THREE.Mesh(tpuWallGeo, tpuMat); w1.position.set(0, 0.02, z - 0.004); dockGroup.add(w1);
                 const w2 = new THREE.Mesh(tpuWallGeo, tpuMat); w2.position.set(0, 0.02, z + 0.004); dockGroup.add(w2);
                 const b = new THREE.Mesh(tpuBaseGeo, tpuMat); b.position.set(0, 0.0085, z); dockGroup.add(b);
 
-                const cableMat = new THREE.MeshStandardMaterial({color: index % 2 === 0 ? 0x111111 : 0x999999, roughness: 0.8});
+                const cableMat = new THREE.MeshStandardMaterial({ color: index % 2 === 0 ? 0x111111 : 0x999999, roughness: 0.8 });
                 const cable = new THREE.Mesh(cableGeo, cableMat);
                 cable.position.set(0, -0.05, z);
                 dockGroup.add(cable);
@@ -562,11 +659,11 @@
 
             // T-Slot interface pointing RIGHT (into the left leg)
             const tStem = new THREE.Mesh(new THREE.BoxGeometry(0.012, 0.006, 0.06), dockBodyMat);
-            tStem.position.set(0.02, 0.02, 0); 
+            tStem.position.set(0.02, 0.02, 0);
             tStem.castShadow = true; dockGroup.add(tStem);
-            
+
             const tCross = new THREE.Mesh(new THREE.BoxGeometry(0.004, 0.012, 0.06), dockBodyMat);
-            tCross.position.set(0.028, 0.02, 0); 
+            tCross.position.set(0.028, 0.02, 0);
             tCross.castShadow = true; dockGroup.add(tCross);
 
             // Position perfectly aligned with the top edge of the leg side (Y = 0.1275)
@@ -578,14 +675,14 @@
 
             // Keyboard Base (Re-using laptop aluminum material)
             const extKbGeo = new RoundedBoxGeometry(0.32, 0.006, 0.12, 2, 0.002);
-            const extKbMesh = new THREE.Mesh(extKbGeo, aluMat); 
+            const extKbMesh = new THREE.Mesh(extKbGeo, aluMat);
             extKbMesh.position.set(-0.06, 0.003, 0.04);
             extKbMesh.castShadow = true; extKbMesh.receiveShadow = true;
             storageGroup.add(extKbMesh);
 
             // Keyboard Keys Area (Re-using laptop keyboard material)
             const extKbKeysGeo = new THREE.BoxGeometry(0.30, 0.001, 0.10);
-            const extKbKeysMesh = new THREE.Mesh(extKbKeysGeo, keyboardMat); 
+            const extKbKeysMesh = new THREE.Mesh(extKbKeysGeo, keyboardMat);
             extKbKeysMesh.position.set(-0.06, 0.0065, 0.04);
             extKbKeysMesh.receiveShadow = true;
             storageGroup.add(extKbKeysMesh);
@@ -598,6 +695,7 @@
             storageGroup.add(mouseMesh);
 
             group.add(storageGroup);
+            group.userData.storageGroup = storageGroup;
 
             return group;
         }
@@ -605,6 +703,9 @@
         function onWindowResize() {
             camera.aspect = window.innerWidth / window.innerHeight;
             camera.updateProjectionMatrix();
+
+            updateOrthoCamera();
+
             renderer.setSize(window.innerWidth, window.innerHeight);
         }
 
@@ -640,23 +741,215 @@
                         animPhase = 0; // Idle state
                     }
                 }
-                
+
                 // Track focus smoothly based on the current height of the top platform
                 controls.target.y += (top.position.y - controls.target.y) * 0.05;
             }
 
             // Smoothly move camera if a POV button was clicked
             if (isAnimatingCamera) {
-                camera.position.lerp(targetCameraPos, 0.08);
-                if (camera.position.distanceTo(targetCameraPos) < 0.005) {
-                    camera.position.copy(targetCameraPos);
+                activeCamera.position.lerp(targetCameraPos, 0.08);
+                if (activeCamera.position.distanceTo(targetCameraPos) < 0.005) {
+                    activeCamera.position.copy(targetCameraPos);
                     isAnimatingCamera = false;
                 }
             }
 
             controls.update();
-            renderer.render(scene, camera);
+            renderer.render(scene, activeCamera);
+        }
+
+        // --- ISO & Styling Helper Functions ---
+
+        const THEMES = {
+            cyber: {
+                bg: 0x121618,
+                wireframeColor: 0x4FD1C5,
+                gridColor1: 0x2B4C54,
+                gridColor2: 0x1A2528,
+                gridOpacity: 0.4,
+                floorVisible: false
+            },
+            blueprint: {
+                bg: 0x0A1D37,
+                wireframeColor: 0xFFFFFF,
+                gridColor1: 0x2C4A6F,
+                gridColor2: 0x162A45,
+                gridOpacity: 0.6,
+                floorVisible: false
+            },
+            tech: {
+                bg: 0xFFFFFF,
+                wireframeColor: 0x1E293B,
+                gridColor1: 0xCBD5E1,
+                gridColor2: 0xF1F5F9,
+                gridOpacity: 0.8,
+                floorVisible: false
+            }
+        };
+
+        function setGridHelper(color1, color2, opacity) {
+            if (gridHelper) {
+                scene.remove(gridHelper);
+            }
+            gridHelper = new THREE.GridHelper(2, 40, color1, color2);
+            gridHelper.position.y = 0.001;
+            gridHelper.material.opacity = opacity;
+            gridHelper.material.transparent = true;
+            scene.add(gridHelper);
+        }
+
+        function updateOrthoCamera() {
+            const aspect = window.innerWidth / window.innerHeight;
+            const frustumSize = 0.55;
+
+            if (!orthoCamera) {
+                orthoCamera = new THREE.OrthographicCamera(
+                    -frustumSize * aspect, frustumSize * aspect,
+                    frustumSize, -frustumSize,
+                    0.01, 20
+                );
+                orthoCamera.position.set(0.55, 0.389, 0.55);
+            } else {
+                const prevZoom = orthoCamera.zoom;
+                orthoCamera.left = -frustumSize * aspect;
+                orthoCamera.right = frustumSize * aspect;
+                orthoCamera.top = frustumSize;
+                orthoCamera.bottom = -frustumSize;
+                orthoCamera.zoom = prevZoom;
+                orthoCamera.updateProjectionMatrix();
+            }
+        }
+
+        function setCamera(type) {
+            if (type === 'ortho') {
+                activeCamera = orthoCamera;
+                orthoCamera.position.set(0.55, 0.389, 0.55);
+                controls.object = orthoCamera;
+            } else {
+                activeCamera = camera;
+                controls.object = camera;
+            }
+            controls.update();
+        }
+
+        function applyISOTheme(themeName) {
+            isoTheme = themeName;
+            const theme = THEMES[themeName];
+
+            scene.background.setHex(theme.bg);
+            if (scene.fog) {
+                scene.fog.color.setHex(theme.bg);
+            }
+
+            document.body.style.backgroundColor = '#' + theme.bg.toString(16).padStart(6, '0');
+            setGridHelper(theme.gridColor1, theme.gridColor2, theme.gridOpacity);
+
+            if (floorMesh) {
+                floorMesh.visible = theme.floorVisible;
+            }
+
+            // Adjust header colors for blueprint readability
+            setHeaderStyle(themeName);
+
+            // Hide laptop, keyboard, and mouse in ISO mode
+            if (riserGroup && riserGroup.userData) {
+                if (riserGroup.userData.laptopGroup) riserGroup.userData.laptopGroup.visible = false;
+                if (riserGroup.userData.storageGroup) riserGroup.userData.storageGroup.visible = false;
+            }
+
+            const wireframeMaterial = new THREE.MeshBasicMaterial({
+                color: theme.wireframeColor,
+                wireframe: true,
+                transparent: true,
+                opacity: 0.85
+            });
+
+            riserGroup.traverse((child) => {
+                if (child.isMesh) {
+                    if (!child.userData.originalMaterial) {
+                        child.userData.originalMaterial = child.material;
+                    }
+                    child.material = wireframeMaterial;
+                }
+            });
+        }
+
+        function disableISOMode() {
+            setCamera('perspective');
+
+            scene.background.setHex(0x121618);
+            if (scene.fog) {
+                scene.fog.color.setHex(0x121618);
+            }
+            document.body.style.backgroundColor = '#121618';
+
+            if (floorMesh) {
+                floorMesh.visible = true;
+            }
+
+            setGridHelper(0x2B4C54, 0x1A2528, 0.4);
+
+            // Revert header colors
+            setHeaderStyle('cyber');
+
+            // Restore laptop, keyboard, and mouse visibility
+            if (riserGroup && riserGroup.userData) {
+                if (riserGroup.userData.laptopGroup) riserGroup.userData.laptopGroup.visible = true;
+                if (riserGroup.userData.storageGroup) riserGroup.userData.storageGroup.visible = true;
+            }
+
+            riserGroup.traverse((child) => {
+                if (child.isMesh && child.userData.originalMaterial) {
+                    child.material = child.userData.originalMaterial;
+                }
+            });
+        }
+
+        function setHeaderStyle(themeName) {
+            const title = document.getElementById('header-title');
+            const span = document.getElementById('header-span');
+            const subtitle = document.getElementById('header-subtitle');
+
+            if (!title || !span || !subtitle) return;
+
+            if (themeName === 'tech') {
+                title.style.setProperty('color', '#1E293B', 'important');
+                title.style.setProperty('filter', 'none', 'important');
+
+                span.style.setProperty('color', '#0F766E', 'important');
+
+                subtitle.style.setProperty('color', '#475569', 'important');
+            } else {
+                title.style.removeProperty('color');
+                title.style.removeProperty('filter');
+
+                span.style.removeProperty('color');
+
+                subtitle.style.removeProperty('color');
+            }
+        }
+
+        function updateThemeUI(activeTheme) {
+            const themes = ['cyber', 'blueprint', 'tech'];
+            themes.forEach(t => {
+                const btn = document.getElementById('theme-' + t);
+                if (t === activeTheme) {
+                    btn.className = "text-xs px-3 py-1.5 rounded-md bg-[#4FD1C5] text-gray-900 font-bold transition-all";
+                } else {
+                    btn.className = "text-xs px-3 py-1.5 rounded-md text-gray-400 hover:text-white transition-all";
+                }
+            });
+        }
+
+        function exportCanvasImage() {
+            renderer.render(scene, activeCamera);
+            const link = document.createElement('a');
+            link.download = `desk-riser-iso-${isoTheme}.png`;
+            link.href = renderer.domElement.toDataURL('image/png');
+            link.click();
         }
     </script>
 </body>
+
 </html>
