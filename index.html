@@ -80,12 +80,67 @@
 <body>
 
     <!-- UI Overlay -->
-    <div class="fixed top-0 left-0 w-full h-full pointer-events-none flex flex-col justify-between p-6 z-10">
-        <header class="pointer-events-auto">
-            <h1 id="header-title" class="text-3xl font-light tracking-wide text-white drop-shadow-md">Modular Desk <span
-                    id="header-span" class="font-bold text-[#4FD1C5]">Eco Riser</span></h1>
-            <p id="header-subtitle" class="text-sm text-gray-400 mt-1">Sustainable Bamboo & Recycled Plastic</p>
-        </header>
+        <div class="flex flex-col md:flex-row justify-between w-full items-start gap-6">
+            <header class="pointer-events-auto">
+                <h1 id="header-title" class="text-3xl font-light tracking-wide text-white drop-shadow-md">Modular Desk <span
+                        id="header-span" class="font-bold text-[#4FD1C5]">Eco Riser</span></h1>
+                <p id="header-subtitle" class="text-sm text-gray-400 mt-1">Sustainable Bamboo & Recycled Plastic</p>
+            </header>
+
+            <!-- CAD Technical Specs Legend -->
+            <div id="iso-legend" class="hidden pointer-events-auto w-80 rounded-2xl p-5 border border-gray-800 backdrop-blur-md shadow-2xl transition-all duration-300">
+                <div class="border-b border-gray-700/50 pb-3 mb-4 flex justify-between items-center">
+                    <div>
+                        <h3 id="legend-title" class="text-xs font-bold tracking-wider uppercase text-[#4FD1C5]">Technical Specs</h3>
+                        <p id="legend-subtitle" class="text-[10px] text-gray-400 mt-0.5">Modular Desk Eco Riser</p>
+                    </div>
+                    <span id="legend-badge" class="text-[9px] px-2 py-0.5 rounded-full font-bold uppercase tracking-wider bg-[#4FD1C5] text-gray-900">ISO DRAFT</span>
+                </div>
+                
+                <div class="space-y-3.5">
+                    <!-- Main Platform -->
+                    <div>
+                        <div class="flex justify-between text-xs font-semibold mb-0.5">
+                            <span id="legend-item1-lbl" class="text-gray-300">Platform Utama</span>
+                            <span id="legend-item1-val" class="font-mono text-[#4FD1C5]">62 × 30 × 1.5 cm</span>
+                        </div>
+                        <p id="legend-item1-desc" class="text-[9px] text-gray-400 font-medium">Panjang × Lebar × Tebal</p>
+                    </div>
+                    
+                    <!-- Legs -->
+                    <div>
+                        <div class="flex justify-between text-xs font-semibold mb-0.5">
+                            <span id="legend-item2-lbl" class="text-gray-300">Kaki Meja (Kiri/Kanan)</span>
+                            <span id="legend-item2-val" class="font-mono text-[#4FD1C5]">4 × 16 × 30 cm</span>
+                        </div>
+                        <p id="legend-item2-desc" class="text-[9px] text-gray-400 font-medium">Lebar × Tinggi × Bentang ke Belakang</p>
+                    </div>
+                    
+                    <!-- Phone Holder -->
+                    <div>
+                        <div class="flex justify-between text-xs font-semibold mb-0.5">
+                            <span id="legend-item3-lbl" class="text-gray-300">Phone Holder Module</span>
+                            <span id="legend-item3-val" class="font-mono text-[#4FD1C5]">12 × 8 × 7 cm</span>
+                        </div>
+                        <p id="legend-item3-desc" class="text-[9px] text-gray-400 font-medium">Panjang × Lebar × Tinggi</p>
+                    </div>
+                    
+                    <!-- Cable Dock -->
+                    <div>
+                        <div class="flex justify-between text-xs font-semibold mb-0.5">
+                            <span id="legend-item4-lbl" class="text-gray-300">Cable Dock Module</span>
+                            <span id="legend-item4-val" class="font-mono text-[#4FD1C5]">4.8 × 4 × 9.2 cm</span>
+                        </div>
+                        <p id="legend-item4-desc" class="text-[9px] text-gray-400 font-medium">Panjang × Lebar × Tinggi</p>
+                    </div>
+                </div>
+                
+                <div class="border-t border-gray-700/50 mt-4 pt-3 flex justify-between items-center text-[9px] text-gray-500 font-mono">
+                    <span>SCALE: 1:10</span>
+                    <span>UNIT: METRIC (CM)</span>
+                </div>
+            </div>
+        </div>
 
         <main class="pointer-events-auto self-end sm:self-center sm:mb-8 w-full max-w-2xl">
             <div id="ui-panel" class="rounded-2xl p-6 flex flex-col sm:flex-row gap-8 items-center justify-between">
@@ -851,6 +906,7 @@
 
             // Adjust header colors for blueprint readability
             setHeaderStyle(themeName);
+            setLegendStyle(themeName);
 
             // Hide laptop, keyboard, and mouse in ISO mode
             if (riserGroup && riserGroup.userData) {
@@ -892,6 +948,10 @@
 
             // Revert header colors
             setHeaderStyle('cyber');
+            
+            // Hide the CAD legend
+            const legend = document.getElementById('iso-legend');
+            if (legend) legend.classList.add('hidden');
 
             // Restore laptop, keyboard, and mouse visibility
             if (riserGroup && riserGroup.userData) {
@@ -942,11 +1002,237 @@
             });
         }
 
+        function setLegendStyle(themeName) {
+            const legend = document.getElementById('iso-legend');
+            if (!legend) return;
+            
+            legend.classList.remove('hidden');
+            
+            const title = document.getElementById('legend-title');
+            const subtitle = document.getElementById('legend-subtitle');
+            const badge = document.getElementById('legend-badge');
+            
+            const labels = [
+                document.getElementById('legend-item1-lbl'),
+                document.getElementById('legend-item2-lbl'),
+                document.getElementById('legend-item3-lbl'),
+                document.getElementById('legend-item4-lbl')
+            ];
+            
+            const values = [
+                document.getElementById('legend-item1-val'),
+                document.getElementById('legend-item2-val'),
+                document.getElementById('legend-item3-val'),
+                document.getElementById('legend-item4-val')
+            ];
+            
+            const descriptions = [
+                document.getElementById('legend-item1-desc'),
+                document.getElementById('legend-item2-desc'),
+                document.getElementById('legend-item3-desc'),
+                document.getElementById('legend-item4-desc')
+            ];
+            
+            if (themeName === 'tech') {
+                legend.style.setProperty('background-color', 'rgba(255, 255, 255, 0.95)', 'important');
+                legend.style.setProperty('border-color', '#CBD5E1', 'important');
+                legend.style.setProperty('color', '#1E293B', 'important');
+                legend.style.setProperty('box-shadow', '0 20px 25px -5px rgb(0 0 0 / 0.1), 0 8px 10px -6px rgb(0 0 0 / 0.1)', 'important');
+                
+                title.style.setProperty('color', '#0F172A', 'important');
+                subtitle.style.setProperty('color', '#475569', 'important');
+                
+                badge.style.setProperty('background-color', '#1E293B', 'important');
+                badge.style.setProperty('color', '#FFFFFF', 'important');
+                
+                labels.forEach(l => l && l.style.setProperty('color', '#0F172A', 'important'));
+                values.forEach(v => v && v.style.setProperty('color', '#0F766E', 'important'));
+                descriptions.forEach(d => d && d.style.setProperty('color', '#64748B', 'important'));
+            } else if (themeName === 'blueprint') {
+                legend.style.setProperty('background-color', 'rgba(10, 29, 55, 0.85)', 'important');
+                legend.style.setProperty('border-color', '#2C4A6F', 'important');
+                legend.style.setProperty('color', '#E2E8F0', 'important');
+                legend.style.setProperty('box-shadow', '0 20px 40px rgba(0, 0, 0, 0.5)', 'important');
+                
+                title.style.setProperty('color', '#FFFFFF', 'important');
+                subtitle.style.setProperty('color', '#94A3B8', 'important');
+                
+                badge.style.setProperty('background-color', '#2563EB', 'important');
+                badge.style.setProperty('color', '#FFFFFF', 'important');
+                
+                labels.forEach(l => l && l.style.setProperty('color', '#FFFFFF', 'important'));
+                values.forEach(v => v && v.style.setProperty('color', '#38BDF8', 'important'));
+                descriptions.forEach(d => d && d.style.setProperty('color', '#94A3B8', 'important'));
+            } else {
+                legend.style.setProperty('background-color', 'rgba(26, 32, 35, 0.85)', 'important');
+                legend.style.setProperty('border-color', 'rgba(255, 255, 255, 0.1)', 'important');
+                legend.style.setProperty('color', '#E2E8F0', 'important');
+                legend.style.setProperty('box-shadow', '0 20px 40px rgba(0, 0, 0, 0.4)', 'important');
+                
+                title.style.setProperty('color', '#4FD1C5', 'important');
+                subtitle.style.setProperty('color', '#94A3B8', 'important');
+                
+                badge.style.setProperty('background-color', '#4FD1C5', 'important');
+                badge.style.setProperty('color', '#0F172A', 'important');
+                
+                labels.forEach(l => l && l.style.setProperty('color', '#E2E8F0', 'important'));
+                values.forEach(v => v && v.style.setProperty('color', '#4FD1C5', 'important'));
+                descriptions.forEach(d => d && d.style.setProperty('color', '#94A3B8', 'important'));
+            }
+        }
+
         function exportCanvasImage() {
             renderer.render(scene, activeCamera);
+            
+            // Create temporary canvas
+            const tempCanvas = document.createElement('canvas');
+            tempCanvas.width = renderer.domElement.width;
+            tempCanvas.height = renderer.domElement.height;
+            const ctx = tempCanvas.getContext('2d');
+            
+            // Draw WebGL viewport
+            ctx.drawImage(renderer.domElement, 0, 0);
+            
+            if (isIsoMode) {
+                // High DPR compositor scaling
+                const dpr = window.devicePixelRatio || 1;
+                const scale = dpr;
+                const cardWidth = 320 * scale;
+                const cardHeight = 270 * scale;
+                
+                // Position in top-right corner, matching interface spacing
+                const x = tempCanvas.width - cardWidth - (24 * scale);
+                const y = 24 * scale;
+                
+                let bg, border, titleColor, labelColor, valueColor, descColor, metaColor, badgeBg, badgeText;
+                if (isoTheme === 'tech') {
+                    bg = 'rgba(255, 255, 255, 0.95)';
+                    border = '#CBD5E1';
+                    titleColor = '#0F172A';
+                    labelColor = '#0F172A';
+                    valueColor = '#0F766E';
+                    descColor = '#64748B';
+                    metaColor = '#94A3B8';
+                    badgeBg = '#1E293B';
+                    badgeText = '#FFFFFF';
+                } else if (isoTheme === 'blueprint') {
+                    bg = 'rgba(10, 29, 55, 0.90)';
+                    border = '#2C4A6F';
+                    titleColor = '#FFFFFF';
+                    labelColor = '#E2E8F0';
+                    valueColor = '#38BDF8';
+                    descColor = '#94A3B8';
+                    metaColor = '#475569';
+                    badgeBg = '#2563EB';
+                    badgeText = '#FFFFFF';
+                } else { // Cyber
+                    bg = 'rgba(26, 32, 35, 0.90)';
+                    border = 'rgba(255, 255, 255, 0.1)';
+                    titleColor = '#4FD1C5';
+                    labelColor = '#E2E8F0';
+                    valueColor = '#4FD1C5';
+                    descColor = '#94A3B8';
+                    metaColor = '#475569';
+                    badgeBg = '#4FD1C5';
+                    badgeText = '#0F172A';
+                }
+                
+                // Fill Background Card
+                ctx.fillStyle = bg;
+                ctx.strokeStyle = border;
+                ctx.lineWidth = 1.5 * scale;
+                
+                const radius = 16 * scale;
+                ctx.beginPath();
+                ctx.moveTo(x + radius, y);
+                ctx.lineTo(x + cardWidth - radius, y);
+                ctx.quadraticCurveTo(x + cardWidth, y, x + cardWidth, y + radius);
+                ctx.lineTo(x + cardWidth, y + cardHeight - radius);
+                ctx.quadraticCurveTo(x + cardWidth, y + cardHeight, x + cardWidth - radius, y + cardHeight);
+                ctx.lineTo(x + radius, y + cardHeight);
+                ctx.quadraticCurveTo(x, y + cardHeight, x, y + cardHeight - radius);
+                ctx.lineTo(x, y + radius);
+                ctx.quadraticCurveTo(x, y, x + radius, y);
+                ctx.closePath();
+                ctx.fill();
+                ctx.stroke();
+                
+                // Technical Specs Header
+                ctx.font = `bold ${13 * scale}px 'Segoe UI', Roboto, sans-serif`;
+                ctx.fillStyle = titleColor;
+                ctx.fillText("TECHNICAL SPECS", x + (20 * scale), y + (30 * scale));
+                
+                ctx.font = `${10 * scale}px 'Segoe UI', Roboto, sans-serif`;
+                ctx.fillStyle = descColor;
+                ctx.fillText("Modular Desk Eco Riser", x + (20 * scale), y + (44 * scale));
+                
+                // ISO Badge
+                const badgeW = 64 * scale;
+                const badgeH = 16 * scale;
+                const badgeX = x + cardWidth - badgeW - (20 * scale);
+                const badgeY = y + (18 * scale);
+                
+                ctx.fillStyle = badgeBg;
+                ctx.beginPath();
+                ctx.roundRect ? ctx.roundRect(badgeX, badgeY, badgeW, badgeH, 8 * scale) : ctx.rect(badgeX, badgeY, badgeW, badgeH);
+                ctx.fill();
+                
+                ctx.font = `bold ${8 * scale}px 'Segoe UI', Roboto, sans-serif`;
+                ctx.fillStyle = badgeText;
+                ctx.textAlign = 'center';
+                ctx.textBaseline = 'middle';
+                ctx.fillText("ISO DRAFT", badgeX + badgeW/2, badgeY + badgeH/2);
+                
+                ctx.textAlign = 'left';
+                ctx.textBaseline = 'alphabetic';
+                
+                // Divider
+                ctx.strokeStyle = border;
+                ctx.lineWidth = 1 * scale;
+                ctx.beginPath();
+                ctx.moveTo(x + (20 * scale), y + (58 * scale));
+                ctx.lineTo(x + cardWidth - (20 * scale), y + (58 * scale));
+                ctx.stroke();
+                
+                // Spec Drawer Helper
+                function drawSpecItem(lbl, val, desc, startY) {
+                    ctx.font = `bold ${11 * scale}px 'Segoe UI', Roboto, sans-serif`;
+                    ctx.fillStyle = labelColor;
+                    ctx.fillText(lbl, x + (20 * scale), y + startY);
+                    
+                    ctx.font = `bold ${11 * scale}px 'Courier New', monospace`;
+                    ctx.fillStyle = valueColor;
+                    ctx.textAlign = 'right';
+                    ctx.fillText(val, x + cardWidth - (20 * scale), y + startY);
+                    
+                    ctx.textAlign = 'left';
+                    ctx.font = `${9 * scale}px 'Segoe UI', Roboto, sans-serif`;
+                    ctx.fillStyle = descColor;
+                    ctx.fillText(desc, x + (20 * scale), y + startY + (13 * scale));
+                }
+                
+                drawSpecItem("Platform Utama", "62 × 30 × 1.5 cm", "Panjang × Lebar × Tebal", 85 * scale);
+                drawSpecItem("Kaki Meja (Kiri/Kanan)", "4 × 16 × 30 cm", "Lebar × Tinggi × Bentang ke Belakang", 130 * scale);
+                drawSpecItem("Phone Holder Module", "12 × 8 × 7 cm", "Panjang × Lebar × Tinggi", 175 * scale);
+                drawSpecItem("Cable Dock Module", "4.8 × 4 × 9.2 cm", "Panjang × Lebar × Tinggi", 220 * scale);
+                
+                // Footer
+                ctx.beginPath();
+                ctx.moveTo(x + (20 * scale), y + (242 * scale));
+                ctx.lineTo(x + cardWidth - (20 * scale), y + (242 * scale));
+                ctx.stroke();
+                
+                ctx.font = `${8 * scale}px 'Courier New', monospace`;
+                ctx.fillStyle = metaColor;
+                ctx.fillText("SCALE: 1:10", x + (20 * scale), y + (256 * scale));
+                
+                ctx.textAlign = 'right';
+                ctx.fillText("UNIT: METRIC (CM)", x + cardWidth - (20 * scale), y + (256 * scale));
+            }
+            
             const link = document.createElement('a');
             link.download = `desk-riser-iso-${isoTheme}.png`;
-            link.href = renderer.domElement.toDataURL('image/png');
+            link.href = tempCanvas.toDataURL('image/png');
             link.click();
         }
     </script>
